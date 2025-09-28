@@ -1,6 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Message {
   role: "user" | "assistant";
@@ -42,50 +46,62 @@ export default function Home() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 h-screen flex flex-col">
-      <h1 className="text-2xl font-bold mb-4">RAG Chat</h1>
+      <Card className="flex-1 flex flex-col">
+        <CardHeader>
+          <CardTitle>RAG Chat</CardTitle>
+        </CardHeader>
 
-      <div className="flex-1 border rounded-lg p-4 mb-4 overflow-y-auto bg-gray-50">
-        {messages.length === 0 && (
-          <p className="text-gray-500">Start a conversation...</p>
-        )}
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`mb-4 ${msg.role === "user" ? "text-right" : "text-left"}`}>
-            <div className={`inline-block p-3 rounded-lg max-w-xs lg:max-w-md ${
-              msg.role === "user"
-                ? "bg-blue-500 text-white"
-                : "bg-white border"
-            }`}>
-              {msg.content}
-            </div>
+        <CardContent className="flex-1 flex flex-col">
+          <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+            {messages.length === 0 && (
+              <p className="text-muted-foreground">Start a conversation...</p>
+            )}
+            {messages.map((msg, idx) => (
+              <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-xs lg:max-w-md p-3 rounded-lg ${
+                  msg.role === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted"
+                }`}>
+                  {msg.role === "assistant" ? (
+                    <div className="prose prose-sm max-w-none [&_a]:text-blue-600 [&_a]:underline [&_strong]:font-bold">
+                      <ReactMarkdown>
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    msg.content
+                  )}
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="flex justify-start">
+                <div className="bg-muted p-3 rounded-lg">
+                  Thinking...
+                </div>
+              </div>
+            )}
           </div>
-        ))}
-        {loading && (
-          <div className="text-left">
-            <div className="inline-block p-3 rounded-lg bg-white border">
-              Thinking...
-            </div>
-          </div>
-        )}
-      </div>
 
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Ask about economic data..."
-          className="flex-1 p-2 border rounded-lg"
-          disabled={loading}
-        />
-        <button
-          onClick={sendMessage}
-          disabled={loading || !input.trim()}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50"
-        >
-          Send
-        </button>
-      </div>
+          <div className="flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              placeholder="Ask about economic data..."
+              disabled={loading}
+              className="flex-1"
+            />
+            <Button
+              onClick={sendMessage}
+              disabled={loading || !input.trim()}
+            >
+              Send
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

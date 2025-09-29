@@ -43,13 +43,18 @@ export default function Home() {
     setLoading(true);
 
     try {
+      // Get current session token
+      const { data: { session } } = await supabase.auth.getSession();
+
       const response = await fetch("http://localhost:8000/ask", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": session?.access_token ? `Bearer ${session.access_token}` : ""
+        },
         body: JSON.stringify({
           text: input,
-          conversation: messages.map(m => ({ role: m.role, content: m.content })),
-          user_id: user?.id || "anonymous"
+          conversation: messages.map(m => ({ role: m.role, content: m.content }))
         }),
       });
 

@@ -34,6 +34,19 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Load messages from session storage
+  useEffect(() => {
+    const saved = sessionStorage.getItem('chat-messages');
+    if (saved) setMessages(JSON.parse(saved));
+  }, []);
+
+  // Save messages to session storage
+  useEffect(() => {
+    if (messages.length > 0) {
+      sessionStorage.setItem('chat-messages', JSON.stringify(messages));
+    }
+  }, [messages]);
+
   const sendMessage = async () => {
     if (!input.trim()) return;
 

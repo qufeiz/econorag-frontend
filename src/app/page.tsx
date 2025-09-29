@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/lib/supabase";
+import Auth from "@/components/auth";
+import type { User } from "@supabase/supabase-js";
 
 interface Message {
   role: "user" | "assistant";
@@ -12,9 +15,24 @@ interface Message {
 }
 
 export default function Home() {
+  const [user, setUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -31,7 +49,7 @@ export default function Home() {
         body: JSON.stringify({
           text: input,
           conversation: messages.map(m => ({ role: m.role, content: m.content })),
-          user_id: "user123"
+          user_id: user?.id || "anonymous"
         }),
       });
 
@@ -44,11 +62,26 @@ export default function Home() {
     }
   };
 
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  // Show auth component if not logged in
+  if (!user) {
+    return <Auth />;
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-4 h-screen flex flex-col">
       <Card className="flex-1 flex flex-col">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>RAG Chat</CardTitle>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">{user.email}</span>
+            <Button variant="outline" size="sm" onClick={signOut}>
+              Sign Out
+            </Button>
+          </div>
         </CardHeader>
 
         <CardContent className="flex-1 flex flex-col">

@@ -11,6 +11,10 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const supabaseConfigured = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
 
   const handleAuth = async () => {
     setLoading(true);
@@ -45,34 +49,42 @@ export default function Auth() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          {supabaseConfigured ? (
+            <>
+              <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <Input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
 
-          <Button
-            onClick={handleAuth}
-            disabled={loading || !email || !password}
-            className="w-full"
-          >
-            {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
-          </Button>
+              <Button
+                onClick={handleAuth}
+                disabled={loading || !email || !password}
+                className="w-full"
+              >
+                {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
+              </Button>
 
-          <Button
-            variant="outline"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="w-full"
-          >
-            {isSignUp ? "Already have an account? Sign In" : "Need an account? Sign Up"}
-          </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsSignUp(!isSignUp)}
+                className="w-full"
+              >
+                {isSignUp ? "Already have an account? Sign In" : "Need an account? Sign Up"}
+              </Button>
+            </>
+          ) : (
+            <div className="text-sm text-muted-foreground text-center">
+              Supabase is not configured. Use "Continue as guest".
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

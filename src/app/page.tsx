@@ -9,9 +9,17 @@ import { supabase } from "@/lib/supabase";
 import Auth from "@/components/auth";
 import type { User } from "@supabase/supabase-js";
 
+interface Attachment {
+  type: string;
+  source: string;
+  title?: string;
+  series_id?: string;
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
+  attachments?: Attachment[];
 }
 
 export default function Home() {
@@ -72,7 +80,12 @@ export default function Home() {
       });
 
       const data = await response.json();
-      setMessages(prev => [...prev, { role: "assistant", content: data.response }]);
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: data.response,
+        attachments: data.attachments,
+      };
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       setMessages(prev => [...prev, { role: "assistant", content: "Error connecting to backend" }]);
     } finally {
@@ -109,7 +122,7 @@ export default function Home() {
             )}
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-xs lg:max-w-md p-3 rounded-lg ${
+                <div className={`max-w-xs lg:max-w-md p-3 rounded-lg space-y-3 ${
                   msg.role === "user"
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted"
@@ -123,6 +136,21 @@ export default function Home() {
                   ) : (
                     msg.content
                   )}
+                  {msg.attachments?.map((attachment, attachmentIndex) => (
+                    attachment.type === "image" ? (
+                      <figure key={attachmentIndex} className="flex flex-col gap-2">
+                        <img
+                          src={attachment.source}
+                          alt={attachment.title ?? "Attachment"}
+                          className="rounded-md border border-muted-foreground/20"
+                        />
+                        <figcaption className="text-xs text-muted-foreground">
+                          {attachment.title ?? "FRED Series"}
+                          {attachment.series_id ? ` • ${attachment.series_id}` : ""}
+                        </figcaption>
+                      </figure>
+                    ) : null
+                  ))}
                 </div>
               </div>
             ))}

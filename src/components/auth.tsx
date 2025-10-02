@@ -38,7 +38,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 h-screen flex items-center">
+    <div className="max-w-md mx-auto p-4 h-full flex items-center justify-center">
       <Card className="w-full">
         <CardHeader>
           <CardTitle>{isSignUp ? "Sign Up" : "Sign In"}</CardTitle>

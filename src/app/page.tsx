@@ -27,6 +27,7 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
     // Get initial session
@@ -94,12 +95,41 @@ export default function Home() {
   };
 
   const signOut = async () => {
+    if (isGuest) {
+      setIsGuest(false);
+      setUser(null);
+      return;
+    }
+
     await supabase.auth.signOut();
+  };
+
+  const continueAsGuest = () => {
+    setIsGuest(true);
+    setUser({
+      id: "anonymous",
+      email: "anonymous@example.com",
+      app_metadata: {},
+      user_metadata: {},
+      aud: "authenticated",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      identities: [],
+      role: "authenticated",
+      factors: [],
+    } as User);
   };
 
   // Show auth component if not logged in
   if (!user) {
-    return <Auth />;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4">
+        <Auth />
+        <Button variant="outline" onClick={continueAsGuest}>
+          Continue as guest
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -108,9 +138,11 @@ export default function Home() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>RAG Chat</CardTitle>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">{user.email}</span>
+            <span className="text-sm text-muted-foreground">
+              {isGuest ? "Guest user" : user.email}
+            </span>
             <Button variant="outline" size="sm" onClick={signOut}>
-              Sign Out
+              {isGuest ? "Exit guest" : "Sign Out"}
             </Button>
           </div>
         </CardHeader>
